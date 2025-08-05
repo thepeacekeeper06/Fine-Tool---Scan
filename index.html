@@ -545,11 +545,6 @@
                 min-width: 100%;
             }
 
-            .result-text {
-                font-size: 0.85rem;
-                padding: 12px;
-            }
-
             .machine-status-grid {
                 grid-template-columns: 1fr;
             }
@@ -673,18 +668,10 @@
             </div>
         </div>
 
-        <div class="result-card" id="resultCard" style="display: none;">
-            <div class="result-header">
-                <span class="result-type" id="resultType">OCR Result</span>
-                <span class="confidence-badge" id="confidenceBadge">0% confident</span>
-            </div>
-            <div class="result-text" id="resultText" onclick="copyToClipboard()"></div>
-            <div class="copy-hint">📋 Click text above to copy to clipboard</div>
-            <div id="verificationInfo"></div>
-        </div>
+        <div id="verificationInfo"></div>
     </div>
 
-    <div class="notification" id="notification">📋 Copied to clipboard!</div>
+    <div class="notification" id="notification">✅ Processing complete!</div>
 
     <script>
         // Global machine status storage
@@ -1338,39 +1325,12 @@
             }
         }
 
-        // Copy to clipboard functionality
-        async function copyToClipboard() {
-            const resultText = document.getElementById('resultText');
-            const text = resultText.textContent;
-            
-            if (!text || text.trim() === '') {
-                showNotification('⚠️ No text to copy', 'warning');
-                return;
-            }
-            
-            try {
-                await navigator.clipboard.writeText(text);
-                showNotification('📋 Text copied to clipboard!');
-            } catch (error) {
-                // Fallback for older browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = text;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                showNotification('📋 Text copied to clipboard!');
-            }
-        }
+
 
         // UI Elements
         const processBtn = document.getElementById('processBtn');
         const retakeBtn = document.getElementById('retakeBtn');
         const status = document.getElementById('status');
-        const resultCard = document.getElementById('resultCard');
-        const resultType = document.getElementById('resultType');
-        const confidenceBadge = document.getElementById('confidenceBadge');
-        const resultText = document.getElementById('resultText');
         const capturedImageContainer = document.getElementById('capturedImageContainer');
         const progressBar = document.getElementById('progressBar');
         const progressFill = document.getElementById('progressFill');
@@ -1512,7 +1472,6 @@
 
         function reset() {
             capturedImageContainer.innerHTML = '';
-            resultCard.style.display = 'none';
             uploadArea.style.display = 'block';
             
             processBtn.style.display = 'none';
@@ -1653,8 +1612,6 @@
 
                 // Display results
                 if (bestResult.text) {
-                    showResult(bestResult.text, bestResult.confidence, 'text');
-                    
                     // Verify RM validation (includes machine status check)
                     const verification = verifyRMValidation(bestResult.rmData);
                     displayVerificationInfo(verification);
@@ -1670,27 +1627,17 @@
                         processBtn.innerHTML = '🚫 Machine Blocked';
                         
                     } else if (verification.valid) {
-                        showStatus('✅ RM validation verified and ready!', 'success');
+                        showStatus(`✅ RM ${verification.rmNumber} verified and ready!`, 'success');
                         
                         markImageAsProcessed();
                         
-                        // Add RM number indicator and send button
-                        const resultHeader = document.querySelector('.result-header');
-                        const rmIndicator = document.createElement('div');
-                        rmIndicator.style.cssText = 'display: flex; align-items: center; gap: 10px; margin-top: 8px;';
-                        
-                        const badge = document.createElement('span');
-                        badge.style.cssText = 'background: #27ae60; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem;';
-                        badge.textContent = `📊 RM ${verification.rmNumber}`;
-                        
+                        // Add send button to verification info
                         const sendBtn = document.createElement('button');
-                        sendBtn.style.cssText = 'background: #667eea; color: white; border: none; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; cursor: pointer;';
-                        sendBtn.textContent = '📤 Send to Sheets';
+                        sendBtn.style.cssText = 'margin-top: 10px; background: #667eea; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; display: block; margin-left: auto; margin-right: auto;';
+                        sendBtn.textContent = `📤 Send RM ${verification.rmNumber} to Sheets`;
                         sendBtn.onclick = () => sendToGoogleSheets(verification.rmNumber, verification.fullMatch);
                         
-                        rmIndicator.appendChild(badge);
-                        rmIndicator.appendChild(sendBtn);
-                        resultHeader.appendChild(rmIndicator);
+                        verificationInfo.appendChild(sendBtn);
                         
                         // Auto-send if enabled (and not blocked)
                         if (isAutoSendEnabled()) {
@@ -1699,7 +1646,7 @@
                             }, 1000);
                         }
                     } else {
-                        showStatus('⚠️ OCR completed but validation failed', 'warning');
+                        showStatus('⚠️ RM validation failed - check timestamp or format', 'warning');
                     }
                 } else {
                     showStatus('❌ No text detected in image', 'error');
@@ -1714,12 +1661,7 @@
             }
         }
 
-        function showResult(text, confidence, type) {
-            resultText.textContent = text;
-            confidenceBadge.textContent = `${Math.round(confidence)}% confident`;
-            resultCard.style.display = 'block';
-            resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
+
 
         function displayVerificationInfo(verification) {
             if (!verification) return;
@@ -1735,6 +1677,11 @@
                 infoDiv.className = verification.valid ? 'verification-info' : 'verification-info invalid';
                 infoDiv.textContent = verification.reason;
                 verificationInfo.appendChild(infoDiv);
+            }
+            
+            // Scroll verification info into view if it contains content
+            if (verificationInfo.innerHTML.trim() !== '') {
+                verificationInfo.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
         }
 
