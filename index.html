@@ -122,6 +122,7 @@
             gap: 8px;
             max-height: 200px;
             overflow-y: auto;
+            transition: opacity 0.2s ease;
         }
 
         .machine-status-item {
@@ -132,7 +133,7 @@
             border-radius: 8px;
             font-size: 0.8rem;
             font-weight: 500;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
         }
 
         .machine-status-item.ok {
@@ -716,11 +717,10 @@
                 
             } catch (error) {
                 console.error('Failed to fetch machine status:', error);
-                showStatusError(`Machine status unavailable: ${error.message}`);
+                showStatusError(`Connection error: ${error.message}`);
                 
-                // Reset machine status data but keep functionality
-                machineStatusData = {};
-                displayMachineStatus();
+                // Don't clear existing machine status data on error
+                // Keep the data visible for user reference
                 consecutiveSuccesses = 0;
             }
         }
@@ -912,10 +912,14 @@
             displayMachineStatus();
         }
 
-        // Display machine status in the UI
+        // Display machine status in the UI (smooth updates)
         function displayMachineStatus() {
             const display = document.getElementById('machineStatusDisplay');
             const indicator = document.getElementById('connectionIndicator');
+            const section = document.querySelector('.machine-status-section');
+            
+            // Remove updating visual cues
+            if (section) section.classList.remove('updating');
             
             if (Object.keys(machineStatusData).length === 0) {
                 display.innerHTML = `
@@ -928,6 +932,7 @@
                 return;
             }
             
+            // Create the grid HTML
             const gridHtml = Object.entries(machineStatusData)
                 .sort(([a], [b]) => a.localeCompare(b))
                 .map(([machineId, data]) => {
@@ -948,7 +953,8 @@
                 `Updated: ${lastStatusUpdate.toLocaleTimeString()} (${refreshInterval/1000}s refresh)` : 
                 'Never updated';
             
-            display.innerHTML = `
+            // Create the complete HTML
+            const newHtml = `
                 <div class="machine-status-grid">
                     ${gridHtml}
                 </div>
@@ -956,6 +962,15 @@
                     ${updateTime}
                 </div>
             `;
+            
+            // Only update if content has actually changed (prevents flickering)
+            if (display.innerHTML !== newHtml) {
+                display.innerHTML = newHtml;
+            }
+            
+            // Remove any updating class from the new grid
+            const newGrid = display.querySelector('.machine-status-grid');
+            if (newGrid) newGrid.classList.remove('updating');
             
             // Set connection indicator to green (connected)
             indicator.className = 'connection-indicator connected';
@@ -987,20 +1002,68 @@
             return isBlocked;
         }
 
-        // Show status loading
+        // Show status loading (subtle visual feedback)
         function showStatusLoading() {
-            const display = document.getElementById('machineStatusDisplay');
             const indicator = document.getElementById('connectionIndicator');
+            const section = document.querySelector('.machine-status-section');
+            const grid = document.querySelector('.machine-status-grid');
             
-            display.innerHTML = '<div class="status-loading">🔄 Checking machine status...</div>';
+            // Show connecting indicator
             indicator.className = 'connection-indicator connecting';
+            
+            // Add subtle visual feedback
+            if (section) section.classList.add('updating');
+            if (grid) grid.classList.add('updating');
+            
+            // If no data exists yet, show loading message
+            const display = document.getElementById('machineStatusDisplay');
+            if (Object.keys(machineStatusData).length === 0) {
+                display.innerHTML = '<div class="status-loading">🔄 Connecting to machine status...</div>';
+            } else {
+                // Keep existing data, just update the timestamp to show it's refreshing
+                const timestampDiv = display.querySelector('div[style*="text-align: center"]');
+                if (timestampDiv) {
+                    timestampDiv.innerHTML = `🔄 Updating... (${refreshInterval/1000}s refresh)`;
+                }
+            }
         }
 
-        // Show status error with retry option
+        // Show status error (preserve existing data when possible)
         function showStatusError(message) {
             const display = document.getElementById('machineStatusDisplay');
             const indicator = document.getElementById('connectionIndicator');
+            const section = document.querySelector('.machine-status-section');
+            const grid = document.querySelector('.machine-status-grid');
             
+            // Remove updating visual cues
+            if (section) section.classList.remove('updating');
+            if (grid) grid.classList.remove('updating');
+            
+            // If we have existing data, keep it and just show error in status
+            if (Object.keys(machineStatusData).length > 0) {
+                // Keep existing machine data visible, just update the footer
+                const existingGrid = display.querySelector('.machine-status-grid');
+                if (existingGrid) {
+                    // Update only the timestamp area to show error
+                    const timestampDiv = display.querySelector('div[style*="text-align: center"]');
+                    if (timestampDiv) {
+                        timestampDiv.innerHTML = `
+                            <div style="color: #e74c3c; font-size: 0.7rem;">
+                                ❌ ${message}<br>
+                                <button onclick="initializeMachineStatus()" 
+                                        style="margin-top: 4px; background: #667eea; color: white; border: none; padding: 3px 8px; border-radius: 4px; font-size: 0.65rem; cursor: pointer;">
+                                    🔄 Retry
+                                </button>
+                            </div>
+                        `;
+                    }
+                    indicator.className = 'connection-indicator'; // Red/disconnected
+                    resetRefreshRate();
+                    return;
+                }
+            }
+            
+            // If no existing data, show full error message
             display.innerHTML = `
                 <div style="color: #e74c3c; text-align: center; padding: 15px;">
                     ❌ ${message}<br>
