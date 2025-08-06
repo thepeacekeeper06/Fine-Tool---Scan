@@ -79,42 +79,43 @@
 
         .manual-control-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
-            max-height: 200px;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 6px;
+            max-height: 160px;
             overflow-y: auto;
         }
 
         .manual-control-item {
             background: white;
-            border-radius: 8px;
-            padding: 12px;
+            border-radius: 6px;
+            padding: 8px;
             border: 1px solid #e9ecef;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .machine-toggle {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
 
         .machine-label {
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #333;
         }
 
-        /* Toggle Switch Styling */
+        /* Toggle Switch Styling - Smaller for mobile */
         .toggle-switch {
             position: relative;
-            width: 50px;
-            height: 24px;
+            width: 40px;
+            height: 20px;
             background: #ccc;
-            border-radius: 15px;
+            border-radius: 12px;
             cursor: pointer;
             transition: background 0.3s ease;
+            flex-shrink: 0;
         }
 
         .toggle-switch.active {
@@ -126,24 +127,26 @@
             position: absolute;
             top: 2px;
             left: 2px;
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
             background: white;
             border-radius: 50%;
             transition: transform 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
 
         .toggle-switch.active:before {
-            transform: translateX(26px);
+            transform: translateX(20px);
         }
 
         .toggle-status {
-            font-size: 0.75rem;
+            font-size: 0.65rem;
             text-align: center;
-            padding: 2px 6px;
-            border-radius: 10px;
+            padding: 1px 4px;
+            border-radius: 6px;
             font-weight: 500;
+            min-height: 16px;
+            line-height: 14px;
         }
 
         .toggle-status.on {
@@ -643,7 +646,38 @@
             }
 
             .manual-control-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 4px;
+                max-height: 140px;
+            }
+
+            .manual-control-item {
+                padding: 6px 8px;
+            }
+
+            .machine-label {
+                font-size: 0.75rem;
+            }
+
+            .toggle-switch {
+                width: 36px;
+                height: 18px;
+            }
+
+            .toggle-switch:before {
+                width: 14px;
+                height: 14px;
+            }
+
+            .toggle-switch.active:before {
+                transform: translateX(18px);
+            }
+
+            .toggle-status {
+                font-size: 0.6rem;
+                padding: 1px 3px;
+                min-height: 14px;
+                line-height: 12px;
             }
 
             .footer {
@@ -694,7 +728,7 @@
         <div class="manual-control-section">
             <div class="manual-control-header">
                 <span class="manual-control-title">
-                    Manual Relay Control
+                    Manual Control
                 </span>
             </div>
             <div id="manualControlDisplay" class="status-loading">
@@ -739,7 +773,7 @@
 
         // Server integration
         function getServerUrl() {
-            return 'https://script.google.com/macros/s/AKfycbyUz2N3TizOj9vTC75JbdVehlpGbJBj-09erI2HfAzOy4AxXBzkCKYEXaYhan7KVziDpA/exec';
+            return 'https://script.google.com/macros/s/AKfycbwyDKEPqPyEF2bf6znQLePNVW0DfuMDjXB5364yH-i-Aktz4xbdM_N3r_dLv3JMNEf42Q/exec';
         }
         
         function isAutoSendEnabled() {
@@ -847,7 +881,7 @@
                 <div class="manual-control-grid">
                     ${controlsHtml}
                 </div>
-                <div style="text-align: center; margin-top: 10px; font-size: 0.7rem; color: #666;">
+                <div style="text-align: center; margin-top: 8px; font-size: 0.65rem; color: #666;">
                     Toggle switches to manually control relay states
                 </div>
             `;
