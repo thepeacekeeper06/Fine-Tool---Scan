@@ -660,18 +660,6 @@
             <p>RM Number Detection & Manual Control</p>
         </div>
 
-        <!-- Manual Relay Control Section -->
-        <div class="manual-control-section">
-            <div class="manual-control-header">
-                <span class="manual-control-title">
-                    🎮 Manual Relay Control
-                </span>
-            </div>
-            <div id="manualControlDisplay" class="status-loading">
-                Loading manual controls...
-            </div>
-        </div>
-
         <!-- Machine Status Section -->
         <div class="machine-status-section">
             <div class="machine-status-header">
@@ -700,6 +688,18 @@
             </div>
             
             <input type="file" id="fileInput" class="file-input" accept="image/*">
+        </div>
+
+        <!-- Manual Relay Control Section -->
+        <div class="manual-control-section">
+            <div class="manual-control-header">
+                <span class="manual-control-title">
+                    Manual Relay Control
+                </span>
+            </div>
+            <div id="manualControlDisplay" class="status-loading">
+                Loading manual controls...
+            </div>
         </div>
 
         <div class="controls" id="controls">
@@ -739,7 +739,7 @@
 
         // Server integration
         function getServerUrl() {
-            return 'https://script.google.com/macros/s/AKfycbwyDKEPqPyEF2bf6znQLePNVW0DfuMDjXB5364yH-i-Aktz4xbdM_N3r_dLv3JMNEf42Q/exec';
+            return 'https://script.google.com/macros/s/AKfycbyUz2N3TizOj9vTC75JbdVehlpGbJBj-09erI2HfAzOy4AxXBzkCKYEXaYhan7KVziDpA/exec';
         }
         
         function isAutoSendEnabled() {
